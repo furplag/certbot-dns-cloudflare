@@ -31,7 +31,7 @@ ZONE_ID=$(curl -s -X GET "${BASE_URL}?name=${DOMAIN}&status=active&per_page=1" \
   | python -c "import sys;import json;data=json.load(sys.stdin);print(data['result'][0]['id']) if data['success'] and data['result_info']['count'] > 0 else False;")
 
 # failure : could not detect zone ID .
-if [ $(echo $ZONE_ID) = "False" ]; then exit 1; fi
+if [ $(echo $ZONE_ID) = "False" ]; then echo "failure : could not detect zone ID ."; exit 1; fi
 
 # get record ID for ACME challenge token ( if specified ) .
 RECORD_ID=$(curl -s -X GET "${BASE_URL}/${ZONE_ID}/dns_records?type=TXT&name=_acme-challenge.${$CERTBOT_DOMAIN}&per_page=1" \
@@ -59,7 +59,7 @@ else
 fi
 
 # failure : could not specify TXT record for ACME challenge token .
-if [ $(echo $RECORD_ID) = "False" ]; then exit 1; fi
+if [ $(echo $RECORD_ID) = "False" ]; then echo "failure : could not specify TXT record for ACME challenge token ."; exit 1; fi
 
 # Sleep to make sure the change has time to propagate over to DNS
 sleep 25
