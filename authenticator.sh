@@ -34,7 +34,7 @@ ZONE_ID=$(curl -s -X GET "${BASE_URL}?name=${DOMAIN}&status=active&per_page=1" \
 if [ $(echo $ZONE_ID) = "False" ]; then echo "failure : could not detect zone ID ."; exit 1; fi
 
 # get record ID for ACME challenge token ( if specified ) .
-RECORD_ID=$(curl -s -X GET "${BASE_URL}/${ZONE_ID}/dns_records?type=TXT&name=_acme-challenge.${$CERTBOT_DOMAIN}&per_page=1" \
+RECORD_ID=$(curl -s -X GET "${BASE_URL}/${ZONE_ID}/dns_records?type=TXT&name=_acme-challenge.${CERTBOT_DOMAIN}&per_page=1" \
   -H  "X-Auth-Key:${AUTH_KEY}" \
   -H  "X-Auth-Email:${EMAIL}" \
   -H  "Content-Type: application/json" \
