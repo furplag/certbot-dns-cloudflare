@@ -29,21 +29,21 @@ if [ $(echo $ZONE_ID) = "False" ]; then exit 1; fi
 
 RECORD_ID=$(curl -s -X GET "${BASE_URL}/${ZONE_ID}/dns_records?type=TXT&name=_acme-challenge.${$CERTBOT_DOMAIN}&per_page=1" \
   -H  "X-Auth-Key:${CF_AUTH_KEY:-N/A}" \
-  -H  "X-Auth-Email:${CF_AUTH_EMAIL:-${EMAIL}}" \
+  -H  "X-Auth-Email:${CF_AUTH_EMAIL:-N/A}" \
   -H  "Content-Type: application/json" \
   | python -c "import sys;import json;data=json.load(sys.stdin);print(data['result'][0]['id']) if data['success'] and data['result_info']['count'] > 0 else False;")
 
 if [ $(echo $RECORD_ID) = "False" ]; then
   RECORD_ID=$(curl -s -X POST "${BASE_URL}/${ZONE_ID}/dns_records" \
   -H  "X-Auth-Key:${CF_AUTH_KEY:-N/A}" \
-  -H  "X-Auth-Email:${CF_AUTH_EMAIL:-${EMAIL}}" \
+  -H  "X-Auth-Email:${CF_AUTH_EMAIL:-N/A}" \
   -H  "Content-Type: application/json" \
   --data '{"type":"TXT","name":"'"_acme-challenge.${$CERTBOT_DOMAIN}"'","content":"'"$CERTBOT_VALIDATION"'"}' \
   | python -c "import sys;import json;data=json.load(sys.stdin);print(data['result'][0]['id']) if data['success'] and data['result_info']['count'] > 0 else False;")
 else
   RECORD_ID=$(curl -s -X POST "${BASE_URL}/${ZONE_ID}/dns_records/${RECORD_ID}" \
   -H  "X-Auth-Key:${CF_AUTH_KEY:-N/A}" \
-  -H  "X-Auth-Email:${CF_AUTH_EMAIL:-${EMAIL}}" \
+  -H  "X-Auth-Email:${CF_AUTH_EMAIL:-N/A}" \
   -H  "Content-Type: application/json" \
   --data '{"type":"TXT","name":"'"_acme-challenge.${$CERTBOT_DOMAIN}"'","content":"'"$CERTBOT_VALIDATION"'"}' \
   | python -c "import sys;import json;data=json.load(sys.stdin);print(data['result'][0]['id']) if data['success'] and data['result_info']['count'] > 0 else False;")
