@@ -1,6 +1,7 @@
 #!/bin/bash
 set -ue -o pipefail
 export LC_ALL=C
+
 ###
 # authenticator.sh
 # 
@@ -20,21 +21,23 @@ export LC_ALL=C
 
 ###
 # statics
-declare -r BASE_URL=https://api.cloudflare.com/client/v4/zones
 declare -r DOMAIN=$(expr match "${CERTBOT_DOMAIN}" '.*\.\(.*\..*\)')
+declare -r baseUrl=https://api.cloudflare.com/client/v4/zones
+declare -r logDir=/var/log/letsencrypt
+declare -r datetime=`date +"%Y%m%d%H%M%S"`
 
 # get zone ID .
-ZONE_ID=$(curl -s -X GET "${BASE_URL}?name=${DOMAIN}&status=active&per_page=1" \
+ZONE_ID=$(curl -s -X GET "${baseUrl}?name=${DOMAIN}&status=active&per_page=1" \
   -H  "X-Auth-Key:${AUTH_KEY}" \
   -H  "X-Auth-Email:${EMAIL}" \
   -H  "Content-Type: application/json" \
   | python -c "import sys;import json;data=json.load(sys.stdin);print(data['result'][0]['id']) if data['success'] and data['result_info']['count'] > 0 else False;")
 
 # failure : could not detect zone ID .
-if [ $(echo $ZONE_ID) = "False" ]; then echo "failure : could not detect zone ID ."; exit 1; fi
+if [ $(echo $ZONE_ID) = "False" ]; then echo "failure : could not detect zone ID ." >> "${logDir}/authenticationFailure.${datetime}.log"; exit 1; fi
 
 # get record ID for ACME challenge token ( if specified ) .
-RECORD_ID=$(curl -s -X GET "${BASE_URL}/${ZONE_ID}/dns_records?type=TXT&name=_acme-challenge.${CERTBOT_DOMAIN}&per_page=1" \
+RECORD_ID=$(curl -s -X GET "${baseUrl}/${ZONE_ID}/dns_records?type=TXT&name=_acme-challenge.${CERTBOT_DOMAIN}&per_page=1" \
   -H  "X-Auth-Key:${AUTH_KEY}" \
   -H  "X-Auth-Email:${EMAIL}" \
   -H  "Content-Type: application/json" \
@@ -42,7 +45,7 @@ RECORD_ID=$(curl -s -X GET "${BASE_URL}/${ZONE_ID}/dns_records?type=TXT&name=_ac
 
 if [ $(echo $RECORD_ID) = "False" ]; then
   # create TXT record for ACME challenge token .
-  RECORD_ID=$(curl -s -X POST "${BASE_URL}/${ZONE_ID}/dns_records" \
+  RECORD_ID=$(curl -s -X POST "${baseUrl}/${ZONE_ID}/dns_records" \
   -H  "X-Auth-Key:${AUTH_KEY}" \
   -H  "X-Auth-Email:${EMAIL}" \
   -H  "Content-Type: application/json" \
@@ -50,7 +53,7 @@ if [ $(echo $RECORD_ID) = "False" ]; then
   | python -c "import sys;import json;data=json.load(sys.stdin);print(data['result']['id']) if data['success'] else False;")
 else
   # update TXT record for ACME challenge token .
-  RECORD_ID=$(curl -s -X PUT "${BASE_URL}/${ZONE_ID}/dns_records/${RECORD_ID}" \
+  RECORD_ID=$(curl -s -X PUT "${baseUrl}/${ZONE_ID}/dns_records/${RECORD_ID}" \
   -H  "X-Auth-Key:${AUTH_KEY}" \
   -H  "X-Auth-Email:${EMAIL}" \
   -H  "Content-Type: application/json" \
@@ -59,7 +62,14 @@ else
 fi
 
 # failure : could not specify TXT record for ACME challenge token .
-if [ $(echo $RECORD_ID) = "False" ]; then echo "failure : could not specify TXT record for ACME challenge token ."; exit 1; fi
+if [ $(echo $RECORD_ID) = "False" ]; then echo "failure : could not specify TXT record for ACME challenge token ." >> "${logDir}/authenticationFailure.${datetime}.log"; exit 1; fi
+
+# Save info for cleanup
+if [ ! -d /var/tmp/CERTBOT_$CERTBOT_DOMAIN ];then
+        mkdir -m 0700 /var/tmp/CERTBOT_$CERTBOT_DOMAIN
+fi
+echo $ZONE_ID > /var/tmp/CERTBOT_$CERTBOT_DOMAIN/ZONE_ID
+echo $RECORD_ID > /var/tmp/CERTBOT_$CERTBOT_DOMAIN/RECORD_ID
 
 # Sleep to make sure the change has time to propagate over to DNS
 sleep 25
