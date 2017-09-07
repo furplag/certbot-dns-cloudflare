@@ -21,16 +21,16 @@ if [ -z "${CERTBOT_DOMAIN}" ]; then echo "undefined: CERTBOT_DOMAIN ."; exit 0; 
 
 if [ -f "/etc/letsencrypt/live/${CERTBOT_DOMAIN}/privkey.pem" ]; then
   rm -rf ${PGDATA}/privkey.pem
-  cp -p "/etc/letsencrypt/live/${CERTBOT_DOMAIN}/privkey.pem" "${PG_DATA}/." && \
-  chown postgres:postgres ${PG_DATA}/privkey.pem && \
-  chmod 0600 ${PG_DATA}/privkey.pem
+  cp -p "/etc/letsencrypt/live/${CERTBOT_DOMAIN}/privkey.pem" "${PGDATA}/." && \
+  chown postgres:postgres ${PGDATA}/privkey.pem && \
+  chmod 0600 ${PGDATA}/privkey.pem
 fi
 
 if [ -f "/etc/letsencrypt/live/${CERTBOT_DOMAIN}/fullchain.pem" ]; then
   rm -rf ${PGDATA}/fullchain.pem
-  cp -p "/etc/letsencrypt/live/${CERTBOT_DOMAIN}/fullchain.pem" "${PG_DATA}/." && \
-  chown postgres:postgres ${PG_DATA}/fullchain.pem && \
-  chmod 0600 ${PG_DATA}/fullchain.pem
+  cp -p "/etc/letsencrypt/live/${CERTBOT_DOMAIN}/fullchain.pem" "${PGDATA}/." && \
+  chown postgres:postgres ${PGDATA}/fullchain.pem && \
+  chmod 0600 ${PGDATA}/fullchain.pem
 fi
 
 /usr/bin/systemctl restart "${PG_SERVICE}.service"
