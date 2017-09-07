@@ -24,6 +24,7 @@ export LC_ALL=C
 declare -r DOMAIN=$(expr match "${CERTBOT_DOMAIN}" '.*\.\(.*\..*\)')
 declare -r baseUrl=https://api.cloudflare.com/client/v4/zones
 declare -r logDir=/var/log/letsencrypt
+declare -r tempDir=/tmp/CERTBOT_$CERTBOT_DOMAIN
 declare -r datetime=`date +"%Y%m%d%H%M%S"`
 
 # get zone ID .
@@ -65,11 +66,11 @@ fi
 if [ $(echo $RECORD_ID) = "False" ]; then echo "failure : could not specify TXT record for ACME challenge token ." >> "${logDir}/authenticationFailure.${datetime}.log"; exit 1; fi
 
 # Save info for cleanup
-if [ ! -d /var/tmp/CERTBOT_$CERTBOT_DOMAIN ];then
-        mkdir -m 0700 /var/tmp/CERTBOT_$CERTBOT_DOMAIN
+if [ ! -d $tempDir ];then
+        mkdir -m 0700 $tempDir
 fi
-echo $ZONE_ID > /var/tmp/CERTBOT_$CERTBOT_DOMAIN/ZONE_ID
-echo $RECORD_ID > /var/tmp/CERTBOT_$CERTBOT_DOMAIN/RECORD_ID
+echo $ZONE_ID > $tempDir/ZONE_ID
+echo $RECORD_ID > $tempDir/RECORD_ID
 
 # Sleep to make sure the change has time to propagate over to DNS
 sleep 25
