@@ -39,7 +39,7 @@ fi
 # Remove the challenge TXT record from the zone
 if [ -n "${ZONE_ID}" ]; then
   if [ -n "${RECORD_ID}" ]; then
-    RECORD_ID=$(curl -s -X DELETE "${baseUrl}?/zones/{ZONE_ID}/dns_records/${RECORD_ID}" \
+    RECORD_ID=$(curl -s -X DELETE "${baseUrl}?/{ZONE_ID}/dns_records/${RECORD_ID}" \
     -H  "X-Auth-Key:${AUTH_KEY}" \
     -H  "X-Auth-Email:${EMAIL}" \
     -H  "Content-Type: application/json" \
