@@ -4,11 +4,12 @@
 1. [Install Certbot](#1-install-certbot).
 2. [Getting certificates](#2-getting-certificates).
 3. [Variable setting](#3-variable-setting).
+4. [Register Service and Timer](#4-register-service-and-timer).
+5. [Activate](#5-activate).
 
 ## prerequirement
 - [ ] All commands need you are "root" or you listed in "wheel" .
 - [ ] EPEL repository enabled .
-- [ ] PostgreSQL (SSL) enabled .
 
 ____
 
@@ -27,7 +28,54 @@ ____
 ### 3. Variable setting
 
 ```bash
+sed -i -e 's/^CERTBOT_ARGS=/#\0/' /etc/sysconfig/certbot
+sed -i -e 's/^POST_HOOK=/#\0/' /etc/sysconfig/certbot
+
 cat << _EOT_ >> /etc/sysconfig/certbot
-AUTH_KEY=__
+
+AUTH_KEY=_cloudflare.api.key.of.your.site_
+EMAIL=_email.address.associated.with.your.cloudflare.account_
+CERTBOT_ARGS="--manual --preferred-challenges=dns --manual-auth-hook /path/to/certbot-dns-cloudflare/authenticator.sh --domain _your.domain.here_ --agree-tos --keep-until-expiring --manual-public-ip-logging-ok"
+
 _EOT_
+
+# add post Hook
+# e.g. restart httpd after renewal, put variable : POST_HOOK="--post-hook 'systemctl restart httpd'".
+
+```
+
+### 4. Register Service and Timer
+
+```bash
+cat << _EOT_ >> /usr/lib/systemd/system/certbot-certonly.service
+[Unit]
+Description=This service automatically renews any certbot certificates found
+
+[Service]
+EnvironmentFile=/etc/sysconfig/certbot
+Type=oneshot
+ExecStart=/usr/bin/certbot certonly \$PRE_HOOK \$POST_HOOK \$RENEW_HOOK \$CERTBOT_ARGS
+
+_EOT_
+
+cat << _EOT_ >> /usr/lib/systemd/system/certbot-certonly.timer
+[Unit]
+Description=This is the timer to set the schedule for automated renewals
+
+[Timer]
+OnCalendar=daily
+RandomizedDelaySec=6hours
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+
+_EOT_
+```
+
+### 5. Activate
+```bash
+systemctl enable certbot-certonly.service && \
+systemctl start certbot-certonly.timer && \
+systemctl enable certbot-certonly.timer
 ```
