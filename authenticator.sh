@@ -4,11 +4,11 @@ export LC_ALL=C
 
 ###
 # authenticator.sh
-# 
+#
 # https://github.com/furplag/certbot-dns
 # Copyright 2017 furplag
 # Licensed under Apache 2.0 (https://github.com/furplag/certbot-dns/blob/master/LICENSE)
-# 
+#
 # forked from https://certbot.eff.org/docs/using.html#pre-and-post-validation-hooks
 
 ###
@@ -21,7 +21,8 @@ export LC_ALL=C
 
 ###
 # statics
-declare -r DOMAIN=$(expr match "${CERTBOT_DOMAIN}" '.*\.\(.*\..*\)')
+declare -r TLD=$(expr match "${CERTBOT_DOMAIN}" '.*\.\(.*\..*\)')
+declare -r DOMAIN=${TLD:-$CERTBOT_DOMAIN}
 declare -r baseUrl=https://api.cloudflare.com/client/v4/zones
 declare -r logDir=/var/log/letsencrypt
 declare -r tempDir=/tmp/CERTBOT_$CERTBOT_DOMAIN
