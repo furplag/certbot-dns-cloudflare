@@ -29,18 +29,24 @@ ____
 
 ```bash
 sed -i -e 's/^CERTBOT_ARGS=/#\0/' /etc/sysconfig/certbot
+sed -i -e 's/^PRE_HOOK=/#\0/' /etc/sysconfig/certbot
+sed -i -e 's/^RENEW_HOOK=/#\0/' /etc/sysconfig/certbot
 sed -i -e 's/^POST_HOOK=/#\0/' /etc/sysconfig/certbot
 
 cat << _EOT_ >> /etc/sysconfig/certbot
 
 AUTH_KEY=_cloudflare.api.key.of.your.site_
 EMAIL=_email.address.associated.with.your.cloudflare.account_
-CERTBOT_ARGS="--manual --preferred-challenges=dns --manual-auth-hook /path/to/certbot-dns-cloudflare/authenticator.sh --domain _your.domain.here_ --agree-tos --keep-until-expiring --manual-public-ip-logging-ok"
+CERTBOT_ARGS="--manual --preferred-challenges=dns --manual-auth-hook _/path/to/certbot-dns-cloudflare/_authenticator.sh --manual-cleanup-hook _/path/to/certbot-dns-cloudflare/_cleanup.sh -d _your.domain.here_ --agree-tos --keep-until-expiring --manual-public-ip-logging-ok"
 
-_EOT_
 
+PRE_HOOK=""
+RENEW_HOOK=""
 # add post Hook
 # e.g. restart httpd after renewal, put variable : POST_HOOK="--post-hook 'systemctl restart httpd'".
+POST_HOOK="--post-hook 'systemctl restart httpd'"
+
+_EOT_
 
 ```
 
