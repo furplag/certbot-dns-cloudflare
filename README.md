@@ -46,6 +46,11 @@ RENEW_HOOK=""
 # e.g. restart httpd after renewal, put variable : POST_HOOK="--post-hook 'systemctl restart httpd'".
 POST_HOOK="--post-hook 'systemctl restart httpd'"
 
+# e.g. overwrite PostgreSQL tls, put variable : POST_HOOK="--post-hook '_/path/to/certbot-dns-cloudflare/_postgresql.sh'".
+#POST_HOOK="--post-hook '_/path/to/certbot-dns-cloudflare/_postgresql.sh'
+#PGDATA=_/path/to/postgres/x.x/_/data
+#PG_SERVICE=_service.name.of.postgresql-x.x_
+
 _EOT_
 
 ```
