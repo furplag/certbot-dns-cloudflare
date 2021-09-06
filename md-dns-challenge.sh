@@ -28,11 +28,11 @@ export CERTBOT_DOMAIN="${2:-}";
 export CERTBOT_VALIDATION="${3:-}";
 
 source <(cat $_basedir/authenticator.sh);
-_EOT_;
+_EOT_
 elif [[ "${_function}" = 'teardown' ]]; then
   cat <<_EOT_ |bash
 export CERTBOT_DOMAIN="${2:-}";
 
 source <(cat $_basedir/cleanup.sh);
-_EOT_;
+_EOT_
 else echo "invaild argment, there is no function \"${_function}\" ."; fi
