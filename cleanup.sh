@@ -13,8 +13,8 @@ export LC_ALL=C
 
 ###
 # variables
-# - AUTH_KEY : Cloudflare API param: "X-Auth-Key"
-# - EMAIL : Cloudflare API param: "X-Auth-Email"
+# - CLOUDFLARE_AUTH_KEY : Cloudflare API param: "X-Auth-Key"
+# - CLOUDFLARE_AUTH_EMAIL : Cloudflare API param: "X-Auth-Email"
 # important : You should write those in /etc/sysconfig/certbot .
 #
 # see more information : "DNS Records for a Zone" section at https://api.cloudflare.com/ .
