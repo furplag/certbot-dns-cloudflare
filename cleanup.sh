@@ -60,7 +60,7 @@ RECORD_ID=$(curl -s -X GET "${_baseUrl}/${ZONE_ID}/dns_records?type=TXT&name=_ac
 if [ $(echo $RECORD_ID) = "False" ]; then
   echo "notice : TXT record for ACME challenge token already has gone, ignore it ." >>$_log; exit 0;
 elif [ -n "${RECORD_ID}" ]; then
-  RECORD_ID=$(curl -s -X DELETE "${_baseUrl}/{ZONE_ID}/dns_records/${RECORD_ID}" \
+  RECORD_ID=$(curl -s -X DELETE "${_baseUrl}/${ZONE_ID}/dns_records/${RECORD_ID}" \
     -H  "X-Auth-Key:${_auth_key}" \
     -H  "X-Auth-Email:${_email}" \
     -H  "Content-Type: application/json" \
