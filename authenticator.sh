@@ -26,7 +26,6 @@ declare -r _domain_root=${_tld:-$CERTBOT_DOMAIN}
 declare -r _domain=$(echo "${_domain_root}" | sed -e "s/^\*\.//")
 declare -r baseUrl=https://api.cloudflare.com/client/v4/zones
 declare -r logDir=/var/log/letsencrypt
-declare -r tempDir=/tmp/letsencrypt.authenticator.$_domain
 declare -r datetime=`date +"%Y%m%d%H%M%S"`
 declare -ir _sleep=${WAIT_SECONDS:-25}
 
@@ -71,11 +70,6 @@ fi
 
 # failure : could not specify TXT record for ACME challenge token .
 if [ $(echo $RECORD_ID) = "False" ]; then echo "failure : could not specify TXT record for ACME challenge token ." >> "${logDir}/authenticationFailure.${datetime}.log"; exit 1; fi
-
-# Save info for cleanup
-[ ! -d $tempDir ] || mkdir -m 0700 $tempDir;
-echo $ZONE_ID >$tempDir/ZONE_ID
-echo $RECORD_ID >$tempDir/RECORD_ID
 
 # Sleep to make sure the change has time to propagate over to DNS
 sleep ${_sleep}
