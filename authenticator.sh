@@ -21,25 +21,30 @@ export LC_ALL=C
 
 ###
 # statics
-declare -r TLD=$(expr match "${CERTBOT_DOMAIN}" '.*\.\(.*\..*\)')
-declare -r DOMAIN=${TLD:-$CERTBOT_DOMAIN}
+declare -r _tld=$(expr match "${CERTBOT_DOMAIN}" '.*\.\(.*\..*\)')
+declare -r _domain_root=${_tld:-$CERTBOT_DOMAIN}
+declare -r _domain=$(echo "${_domain_root}" | sed -e "s/^\*\.//")
 declare -r baseUrl=https://api.cloudflare.com/client/v4/zones
 declare -r logDir=/var/log/letsencrypt
-declare -r tempDir=/tmp/CERTBOT_$CERTBOT_DOMAIN
 declare -r datetime=`date +"%Y%m%d%H%M%S"`
+declare -ir _sleep=${WAIT_SECONDS:-25}
+
+if [ -z "${CERTBOT_VALIDATION}" ]; then echo "failure : invalid argument \"CERTBOT_VALIDATION\" ( \"${CERTBOT_VALIDATION}\" ) ." >>"${logDir}/authenticationFailure.${datetime}.log"; exit 1; fi
+if [ -z "${_domain}" ]; then echo "failure : invalid argument \"CERTBOT_DOMAIN\" ( \"${CERTBOT_DOMAIN}\" ) ." >>"${logDir}/authenticationFailure.${datetime}.log"; exit 1; fi
+if [ "${_domain}" =~ "\*" ]; then echo "failure : invalid argument \"CERTBOT_DOMAIN\" ( \"${CERTBOT_DOMAIN}\" ) ." >>"${logDir}/authenticationFailure.${datetime}.log"; exit 1; fi
 
 # get zone ID .
-ZONE_ID=$(curl -s -X GET "${baseUrl}?name=${DOMAIN}&status=active&per_page=1" \
+ZONE_ID=$(curl -s -X GET "${baseUrl}?name=${_domain_root}&status=active&per_page=1" \
   -H  "X-Auth-Key:${AUTH_KEY}" \
   -H  "X-Auth-Email:${EMAIL}" \
   -H  "Content-Type: application/json" \
   | python -c "import sys;import json;data=json.load(sys.stdin);print(data['result'][0]['id']) if data['success'] and data['result_info']['count'] > 0 else False;")
 
 # failure : could not detect zone ID .
-if [ $(echo $ZONE_ID) = "False" ]; then echo "failure : could not detect zone ID ." >> "${logDir}/authenticationFailure.${datetime}.log"; exit 1; fi
+if [ $(echo $ZONE_ID) = "False" ]; then echo "failure : could not detect zone ID ." >>"${logDir}/authenticationFailure.${datetime}.log"; exit 1; fi
 
 # get record ID for ACME challenge token ( if specified ) .
-RECORD_ID=$(curl -s -X GET "${baseUrl}/${ZONE_ID}/dns_records?type=TXT&name=_acme-challenge.${CERTBOT_DOMAIN}&per_page=1" \
+RECORD_ID=$(curl -s -X GET "${baseUrl}/${ZONE_ID}/dns_records?type=TXT&name=_acme-challenge.${_domain}&per_page=1" \
   -H  "X-Auth-Key:${AUTH_KEY}" \
   -H  "X-Auth-Email:${EMAIL}" \
   -H  "Content-Type: application/json" \
@@ -51,7 +56,7 @@ if [ $(echo $RECORD_ID) = "False" ]; then
   -H  "X-Auth-Key:${AUTH_KEY}" \
   -H  "X-Auth-Email:${EMAIL}" \
   -H  "Content-Type: application/json" \
-  --data '{"type":"TXT","name":"'"_acme-challenge.${CERTBOT_DOMAIN}"'","content":"'"${CERTBOT_VALIDATION}"'"}' \
+  --data '{"type":"TXT","name":"'"_acme-challenge.${_domain}"'","content":"'"${CERTBOT_VALIDATION}"'"}' \
   | python -c "import sys;import json;data=json.load(sys.stdin);print(data['result']['id']) if data['success'] else False;")
 else
   # update TXT record for ACME challenge token .
@@ -59,7 +64,7 @@ else
   -H  "X-Auth-Key:${AUTH_KEY}" \
   -H  "X-Auth-Email:${EMAIL}" \
   -H  "Content-Type: application/json" \
-  --data '{"type":"TXT","name":"'"_acme-challenge.${CERTBOT_DOMAIN}"'","content":"'"${CERTBOT_VALIDATION}"'"}' \
+  --data '{"type":"TXT","name":"'"_acme-challenge.${_domain}"'","content":"'"${CERTBOT_VALIDATION}"'"}' \
   | python -c "import sys;import json;data=json.load(sys.stdin);print(data['result']['id']) if data['success'] else False;")
 fi
 
@@ -67,11 +72,9 @@ fi
 if [ $(echo $RECORD_ID) = "False" ]; then echo "failure : could not specify TXT record for ACME challenge token ." >> "${logDir}/authenticationFailure.${datetime}.log"; exit 1; fi
 
 # Save info for cleanup
-if [ ! -d $tempDir ];then
-        mkdir -m 0700 $tempDir
-fi
-echo $ZONE_ID > $tempDir/ZONE_ID
-echo $RECORD_ID > $tempDir/RECORD_ID
+[ ! -d $tempDir ] || mkdir -m 0700 $tempDir;
+echo $ZONE_ID >$tempDir/ZONE_ID
+echo $RECORD_ID >$tempDir/RECORD_ID
 
 # Sleep to make sure the change has time to propagate over to DNS
-sleep 25
+sleep ${_sleep}
