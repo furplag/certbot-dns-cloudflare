@@ -27,7 +27,7 @@ declare -r _email=${CLOUDFLARE_AUTH_EMAIL:-}
 
 declare -r _tld=$(expr match "${CERTBOT_DOMAIN}" '.*\.\(.*\..*\)')
 declare -r _domain_root=${_tld:-$CERTBOT_DOMAIN}
-declare -r _domain=$(echo "${_domain_root}" | sed -e "s/^\*\.//")
+declare -r _domain=$(echo "$CERTBOT_DOMAIN" | sed -e "s/^\*\.//")
 declare -ir _sleep=${WAIT_SECONDS:-25}
 
 declare -r _logDir=/var/log/letsencrypt
