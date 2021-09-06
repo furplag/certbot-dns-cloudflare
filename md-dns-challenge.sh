@@ -18,6 +18,7 @@ export LC_ALL=C
 
 export CLOUDFLARE_AUTH_KEY=${CLOUDFLARE_AUTH_KEY:-}
 export CLOUDFLARE_AUTH_EMAIL=${CLOUDFLARE_AUTH_EMAIL:-}
+export WAIT_SECONDS=${WAIT_SECONDS:-5}
 
 declare -r _basedir=$(cd $(dirname $0)/;pwd)
 declare -r _function=${1:-}
