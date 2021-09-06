@@ -30,9 +30,9 @@ declare -r tempDir=/tmp/letsencrypt.authenticator.$_domain
 declare -r datetime=`date +"%Y%m%d%H%M%S"`
 declare -ir _sleep=${WAIT_SECONDS:-25}
 
-if [ -z "${CERTBOT_VALIDATION}" ]; then echo "failure : invalid argument \"CERTBOT_VALIDATION\" ( \"${CERTBOT_VALIDATION}\" ) ." >>"${logDir}/authenticationFailure.${datetime}.log"; exit 1; fi
-if [ -z "${_domain}" ]; then echo "failure : invalid argument \"CERTBOT_DOMAIN\" ( \"${CERTBOT_DOMAIN}\" ) ." >>"${logDir}/authenticationFailure.${datetime}.log"; exit 1; fi
-if [ "${_domain}" =~ "\*" ]; then echo "failure : invalid argument \"CERTBOT_DOMAIN\" ( \"${CERTBOT_DOMAIN}\" ) ." >>"${logDir}/authenticationFailure.${datetime}.log"; exit 1; fi
+if [[ -z "${CERTBOT_VALIDATION}" ]]; then echo "failure : invalid argument \"CERTBOT_VALIDATION\" ( \"${CERTBOT_VALIDATION}\" ) ." >>"${logDir}/authenticationFailure.${datetime}.log"; exit 1; fi
+if [[ -z "${_domain}" ]]; then echo "failure : invalid argument \"CERTBOT_DOMAIN\" ( \"${CERTBOT_DOMAIN}\" ) ." >>"${logDir}/authenticationFailure.${datetime}.log"; exit 1; fi
+if [[ "${_domain}" =~ \* ]]; then echo "failure : invalid argument \"CERTBOT_DOMAIN\" ( \"${CERTBOT_DOMAIN}\" ) ." >>"${logDir}/authenticationFailure.${datetime}.log"; exit 1; fi
 
 # get zone ID .
 ZONE_ID=$(curl -s -X GET "${baseUrl}?name=${_domain_root}&status=active&per_page=1" \
