@@ -1,4 +1,5 @@
 # Using Certbot by EPEL package for SSL connection and auto renewal without HTTP verify (verify ACME token by DNS) .
+[![deprecated](https://img.shields.io/badge/deprecated-integrated%20as%20a%20part%20of%20DNS%20Challenge-red.svg)](https://github.com/furplag/dns-challenge)
 
 ## TL;DR
 1. [Install Certbot](#1-install-certbot).
